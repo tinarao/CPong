@@ -16,3 +16,7 @@ int RandomNumber(int min, int max) {
 int RandomColor() {
 	return RandomNumber(0, 255);
 }
+
+bool CoinFlip(void) {
+	return RandomNumber(1, 2) % 2 == 1;
+}

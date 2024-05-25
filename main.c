@@ -3,31 +3,22 @@
 #include <stdbool.h>
 
 #include "colors.h"
-
-#define WINDOW_W 900
-#define WINDOW_H 600
-#define BALL_SIZE 20
+#include "ball.h"
+#include "player.h"
+#include "screen.h"
+#include "collision.h"
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 
-static void PongRenderBall(void) {
-	SDL_SetRenderDrawColor(renderer, COLOR_WHITE);
-
-	SDL_Rect ballRect = {
-		WINDOW_W / 2 - BALL_SIZE / 2,
-		WINDOW_H / 2 - BALL_SIZE / 2,
-		BALL_SIZE,
-		BALL_SIZE,
-	};
-
-	SDL_RenderFillRect(renderer, &ballRect);
-}
+const int BALL_SIZE = 20;
+Ball ball;
+Player player;
 
 static bool PongInit(void) {
 	SDL_Init(SDL_INIT_VIDEO);
 
-	window = SDL_CreateWindow("Pong",
+	window = SDL_CreateWindow("Pong | Score: 0 | Lifes: 3",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_W, WINDOW_H, SDL_WINDOW_SHOWN
 	);
 	if (!window) {
@@ -38,6 +29,10 @@ static bool PongInit(void) {
 	if (!renderer) {
 		return false;
 	}
+
+	ball = CreateBall(BALL_SIZE);
+	player = CreatePlayer();
+
 	return true;
 };
 
@@ -46,10 +41,17 @@ static void Update(float elapsed) {
 	SDL_SetRenderDrawColor(renderer, COLOR_BLACK);
 	SDL_RenderClear(renderer);
 
-	PongRenderBall();
+	//
+	UpdateBall(&ball, renderer, window, elapsed);
+	UpdatePlayer(&player, renderer, elapsed);
+
+	RenderBall(&ball, renderer);
+	RenderPlayer(&player, renderer);
+
+	InspectCollisions(&ball, &player, window);
+	//
 
 	SDL_RenderPresent(renderer);
-
 };
 
 static void Shutdown(void) {
@@ -82,10 +84,18 @@ int main(int argc, const char **argv[]) {
 				break;
 			}
 		}
+		
 		Uint32 currTick = SDL_GetTicks();
 		Uint32 diff = currTick - lastTick;
 		Update(diff / 1000.0f);
 		lastTick = currTick;
+
+		printf("Lifes: %d\tScore: %d\n", lifes, score);
+
+		if (lifes == 0) {
+			printf("Proebal loh");
+			break;
+		}
 	}
 
 	return 0;
